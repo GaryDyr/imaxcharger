@@ -8,10 +8,9 @@ import sys
 import time
 import datetime
 from bokeh.models import ColumnDataSource, Slider, DataTable, TableColumn
-from bokeh.plotting import Figure, output_file, show
 from bokeh.plotting import figure, output_file, show
 from bokeh.io import output_file, show
-from bokeh.layouts import widgetbox, column, row
+from bokeh.layouts import column, row
 from bokeh.models.widgets import Button, RadioButtonGroup, Select, Slider, RadioGroup, Div, TextInput
 from bokeh.layouts import gridplot, layout
 from bokeh.plotting import curdoc 
@@ -319,7 +318,7 @@ out_data = {'mah':[0], 'timer':[0], 'volts':[0], 'current':[0],
 source = ColumnDataSource(data = out_data)
 
 #Generate two plots, for capacity and voltage
-p = figure(plot_width=400, plot_height=400)
+p = column(plot_width=400, plot_height=400)
 p.title.text = "Capactiy Input vs. Charge Time"
 p.title.text_color = "black"
 p.title.text_font = "arial"
@@ -330,7 +329,7 @@ p.yaxis.axis_label = "Capacity Added(mah)"
 r_cap = p.line(x = 'timer', y = 'mah', source = source, color="red", line_width=2)
 
 #Set the voltabe plot; complicated a  bit by battery type
-p1 = figure(plot_width=400, plot_height=400)
+p1 = column(plot_width=400, plot_height=400)
 p1.title.text = "Voltage vs. Charge Time"
 p1.title.text_color = "black"
 p1.title.text_font = "arial"
@@ -381,12 +380,12 @@ class Cycler(update()):
 #start_cycle = curdoc().add_periodic_callback(update, 10000) #time in milliseconds
 
 #w1 = row(select_battype, select_chrg_type) #, width = 300) #sizing_mode = 'fixed')
-w1 = widgetbox(select_battype, select_chrg_type, select_cells) #, width = 300) #sizing_mode = 'fixed')
-w2 = widgetbox(maxmah_slider) #, sizing_mode='fixed')
-w3 = widgetbox(text_input) #, sizing_mode = 'fixed')
-w4 = widgetbox(button_startstop, button_save )#, sizing_mode ='fixed')
-w5 = widgetbox(DC_radio_group, select_cycles)
-w6 = widgetbox(data_table)
+w1 = column(select_battype, select_chrg_type, select_cells) #, width = 300) #sizing_mode = 'fixed')
+w2 = column(maxmah_slider) #, sizing_mode='fixed')
+w3 = column(text_input) #, sizing_mode = 'fixed')
+w4 = column(button_startstop, button_save )#, sizing_mode ='fixed')
+w5 = column(DC_radio_group, select_cycles)
+w6 = column(data_table)
 """
 Layit = layout([row(column(
 [notice1],
@@ -398,9 +397,9 @@ Layit = layout([row(column(
   [data_table]), 
   column(p, p1))], sizing_mode='fixed')
 """
-#Layit = gridplot([[column([p, p1]), widgetbox(w1.children+w2.children+w3.children+w4.children+w5.children)]])
+#Layit = gridplot([[column([p, p1]), column(w1.children+w2.children+w3.children+w4.children+w5.children)]])
 curdoc().add_root(notice1)
-Layit = gridplot([[widgetbox(w1.children+w2.children+w3.children+w4.children+w5.children,), column([p, p1])]]) 
+Layit = gridplot([[column(w1.children+w2.children+w3.children+w4.children+w5.children,), column([p, p1])]]) 
 
 curdoc().add_root(Layit) 
 curdoc().add_root(data_table)
