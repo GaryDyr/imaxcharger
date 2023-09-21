@@ -918,7 +918,7 @@ out_data = {'mah':[0], 'timer':[0], 'volts':[0], 'current':[0],
 source = ColumnDataSource(data = out_data)
 
 #Generate two plots, for capacity and voltage
-p = figure(plot_width=400, plot_height=400)
+p = figure(width=400, height=400)
 p.title.text = "Capactiy vs. Time"
 p.title.text_color = "black"
 p.title.text_font = "arial"
@@ -929,7 +929,7 @@ p.yaxis.axis_label = "Capacity (mah)"
 r_cap = p.line(x = 'timer', y = 'mah', source = source, color="red", line_width=2)
 
 #Set the voltabe plot; complicated a  bit by battery type
-p1 = figure(plot_width=400, plot_height=400)
+p1 = figure(width=400, height=400)
 p1.title.text = "Voltage vs. Time"
 p1.title.text_color = "black"
 p1.title.text_font = "arial"
