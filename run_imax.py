@@ -33,9 +33,8 @@ import configparser
 from bokeh.models import DataTable, TableColumn
 from bokeh.models import CustomJS, ColumnDataSource
 from bokeh.io import output_file, show
-from bokeh.layouts import widgetbox, column, row
+from bokeh.layouts import column, row
 from bokeh.models.widgets import Button, RadioButtonGroup, Select, Slider, RadioGroup,Div, TextInput
-from bokeh.plotting import Figure, output_file, show
 from bokeh.plotting import figure, output_file, show
 from bokeh.layouts import gridplot, layout
 from bokeh.plotting import curdoc 
@@ -967,18 +966,18 @@ def update():
     button_startstop_handler()    
 
 #w1 = row(select_battype, select_chrg_type) #, width = 300) #sizing_mode = 'fixed')
-w1 = widgetbox(select_battype, select_chrg_type, select_cells) #, width = 300) #sizing_mode = 'fixed')
-w2 = widgetbox(maxmah_slider) #, sizing_mode='fixed')
-w3 = widgetbox(select_chrg_rate, select_dchrg_rate, select_minV)
-w4 = widgetbox(text_input) #, sizing_mode = 'fixed')
-w5 = widgetbox(button_startstop, button_save )#, sizing_mode ='fixed')
-w6 = widgetbox(DC_radio_group, select_cycles)
-w7 = widgetbox( use_input,select_prgm)
-w8 = widgetbox(btn_savenew, btn_saveover, btn_delete)
-w9 = widgetbox(data_table)
+w1 = column(select_battype, select_chrg_type, select_cells) #, width = 300) #sizing_mode = 'fixed')
+w2 = column(maxmah_slider) #, sizing_mode='fixed')
+w3 = column(select_chrg_rate, select_dchrg_rate, select_minV)
+w4 = column(text_input) #, sizing_mode = 'fixed')
+w5 = column(button_startstop, button_save )#, sizing_mode ='fixed')
+w6 = column(DC_radio_group, select_cycles)
+w7 = column( use_input,select_prgm)
+w8 = column(btn_savenew, btn_saveover, btn_delete)
+w9 = column(data_table)
 
 curdoc().add_root(notice1)
-Layit = gridplot([[widgetbox(w1.children+w2.children+w3.children+w4.children+w5.children+w6.children+w7.children+w8.children+w9.children), column([p, p1])]]) 
+Layit = gridplot([[column(w1.children+w2.children+w3.children+w4.children+w5.children+w6.children+w7.children+w8.children+w9.children), column([p, p1])]]) 
 
 curdoc().add_root(Layit) 
 #curdoc().add_root(data_table)
