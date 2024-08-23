@@ -1,0 +1,2 @@
+# Allows non-root access to SkyRC iMax B6 charger
+ATTRS{idVendor}=="0000", ATTRS{idProduct}=="0001", MODE="0666"

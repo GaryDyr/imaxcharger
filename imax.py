@@ -25,12 +25,14 @@ Requires:
 
 #to get all usb devices run following from an independent python module
 #!/usr/bin/python
+import os
 import sys
 import usb.core
 import usb.util
 import usb
 import time
 import datetime
+import csv
 import json
 #from bok import text_update
 from openpyxl import Workbook
@@ -126,8 +128,8 @@ def find_my_device():
       #attempt to get the product stuff
       try: 
         d._product = usb.util.get_string(d, d.iProduct)
-      except:
-        pass
+      except Exception as e:
+        print(f"Failed to get HID Product string: " + str(e))
       if d._product:
         print(d._product)
         #my_device_usb product variable is globally defined
@@ -135,7 +137,7 @@ def find_my_device():
           devicefnd = True
           msg = 'imax usb interface device: ' + d._product + ' found.'
           print('my devices found it')
-          return msg        
+          return msg
     #return default not found message, if not found
     print('find_my_devices says did not find it')
     return msg
@@ -157,6 +159,20 @@ def connect_imax():
     except:
       pass
     msg = manuf + ' Device connected: Hexadecimal VendorID=' + hex(dev.idVendor) + ' & ProductID=' + hex(dev.idProduct)
+
+  try:
+    # Linux support, detach kernel driver if used
+    if dev.is_kernel_driver_active(0):
+      try:
+        dev.detach_kernel_driver(0)
+        print("Kernel driver detached")
+      except usb.USBError as e:
+        raise IOError("Could not detach kernel driver") from e
+    else:
+      print("No kernel driver attached")
+  except NotImplementedError as e:
+    print(f"Not implemented: '{e}', proceeding")
+
   return dev
   
 def start_imax(settings_packet):

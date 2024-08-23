@@ -93,8 +93,8 @@ def find_our_device():
   for dev in bus:
     print('a dev',dev)
     _name1 =usb.util.get_string(dev, dev.iSerialNumber)
-    _anme2 = usb.util.get_string(dev, dev.iManufacturer)
-    print("device name=",_name1, ' or ',_name2)
+    _name2 = usb.util.get_string(dev, dev.iManufacturer)
+    print("device name=", _name1, ' or ', _name2)
     print( "Device:", dev.filename)
     print( "  Device class:",dev.deviceClass)
     print( "  Device sub class:",dev.deviceSubClass)
@@ -151,6 +151,19 @@ def start_imax():
     time.sleep(2)
     
   print('Decimal VendorID=' + hex(dev.idVendor) + ' & ProductID=' + hex(dev.idProduct) + '\n')
+
+  try:
+    # Linux support, detach kernel driver if used
+    if dev.is_kernel_driver_active(0):
+      try:
+        dev.detach_kernel_driver(0)
+        print("Kernel driver detached")
+      except usb.USBError as e:
+        raise IOError("Could not detach kernel driver") from e
+    else:
+      print("No kernel driver attached")
+  except NotImplementedError as e:
+    print(f"Not implemented: '{e}', proceeding")
 
   #Confirm device is IMAX
   if dev:
@@ -364,6 +377,7 @@ def start_imax():
   #simple storage    
   output_csv(header, data_out, final_dict)
 
+
 def __main__():
   #uncomment next line to find all hids (human interface devices)
   #Prints all hid to cmd or Powershell console.
@@ -382,7 +396,6 @@ def __main__():
   if not imax:
     print("data recording stopped")
 
+
 if __name__== "__main__":
   __main__()
-
-

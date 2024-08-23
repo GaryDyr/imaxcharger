@@ -1,0 +1,5 @@
+pyusb
+hidapi
+SQLAlchemy
+openpyxl
+bokeh

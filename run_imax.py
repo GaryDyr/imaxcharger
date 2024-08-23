@@ -23,7 +23,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #The first two packages require other python packages or libraries be installed first.  
 #See the installation instructions of each package for details.
 #Start this module with:
-#  bokeh serve --show select_test.py 
+#  bokeh serve --show run_imax.py
 
 import os
 import sys
@@ -357,13 +357,13 @@ def update_selects(b_type, sel_type):
       if 'Ni' in b_type:
         select_chrg_type.options = NiXX_options
         if not select_chrg_type.value in NiXX_options:
-          select.chrg_type.value = 'Charge'
+          select_chrg_type.value = 'Charge'
       if 'Li' in b_type:
         select_chrg_type.options = LiXX_options
         if not select_chrg_type.value in LiXX_options:
           select_chrg_type.value = 'Charge'
       if b_type == 'Pb':
-        select.crhg_type.options = Pb_options
+        select_chrg_type.options = Pb_options
     if sel_type == 'minV':
       print('in u_s minV')
       if b_type in limits:
@@ -739,10 +739,10 @@ def get_final_data():
   print(msg)
   text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
   #set to idle again
-  imax_settings_out =[0x0f, 0x03, 0x5a, 0x00, 0x5a, 0xff, 0xff] + [0]*57 
-  w_out = device.write(ep_out, imax_settings_out)
-  idle_settings = device.read(ep_in.bEndpointAddress,ep_in.wMaxPacketSize) 
-  #print('idle_settings are: ', idle_settings)   
+  imax_settings_out = [0x0f, 0x03, 0x5a, 0x00, 0x5a, 0xff, 0xff] + [0] * 57
+  w_out = device.write(EndPt_out, imax_settings_out)
+  idle_settings = device.read(EndPt_in.bEndpointAddress, EndPt_in.wMaxPacketSize)
+  #print('idle_settings are: ', idle_settings)
   
 def start_device():
   #----sets up device if connected, returns imax settings, configures, and sets data dictionary---
