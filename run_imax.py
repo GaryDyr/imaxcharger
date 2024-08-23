@@ -14,42 +14,41 @@ WHATSOEVER RESULTING  FROM LOSS OF USE,  DATA OR PROFITS,  WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF 
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 """
-#Application using default browser to open dashboard to control an Imax B6 Mini Charger.
-#Tested and run under Windows 10 2018 Spring Revision 1903, with Python 3.6.3, bokeh 12.16
-##Before starting the module, make sure you have installed all the external modules: 
-#   bokeh
-#   pyusb,
-#  SQLalchemy 
-#The first two packages require other python packages or libraries be installed first.  
-#See the installation instructions of each package for details.
-#Start this module with:
-#  bokeh serve --show run_imax.py
 
-import os
-import sys
-import time
-import datetime
+# Application using default browser to open dashboard to control an Imax B6 Mini Charger.
+# Tested and run under Windows 10 2018 Spring Revision 1903, with Python 3.6.3, bokeh 12.16
+# Before starting the module, make sure you have installed all the external modules
+# from requirements.txt file. To install them use:
+#   pip install -r requirements.txt
+# See the installation instructions of each package for details.
+
+# Start this module with:
+#   bokeh serve --show run_imax.py
+
 import configparser
-from bokeh.models import DataTable, TableColumn
-from bokeh.models import CustomJS, ColumnDataSource
-from bokeh.io import output_file, show
-from bokeh.layouts import column, row
-from bokeh.models.widgets import Button, RadioButtonGroup, Select, Slider, RadioGroup,Div, TextInput
-from bokeh.plotting import figure, output_file, show
-from bokeh.layouts import gridplot, layout
-from bokeh.plotting import curdoc 
-from bokeh.driving import linear
-from bokeh.models.callbacks import CustomJS
+import datetime
+import os
 import random
-import db_ops
-from db_ops import session, Programs
-#-----------------INITIALIZE SETTINGS----------------------------------------------------------
-#get the default battery type from the config file, currently = NiMH)
-#see imaxconfig.ini to change
+import time
 
-#Logic: The battery type is the most critical element to structure all
-#other parameters. Key off of that as much as possible.
-#USER MUST INPUT bat_type, nominal_mah, cells,
+from bokeh.layouts import column
+from bokeh.layouts import gridplot
+from bokeh.models import ColumnDataSource
+from bokeh.models import DataTable, TableColumn
+from bokeh.models.widgets import Button, Select, Slider, RadioGroup, Div, TextInput
+from bokeh.plotting import curdoc
+from bokeh.plotting import figure
+
+import db_ops
+from db_ops import Programs
+
+# -----------------INITIALIZE SETTINGS----------------------------------------------------------
+# get the default battery type from the config file, currently = NiMH)
+# see imaxconfig.ini to change
+
+# Logic: The battery type is the most critical element to structure all
+# other parameters. Key off of that as much as possible.
+# USER MUST INPUT bat_type, nominal_mah, cells,
 
 config_file = 'imaxconfig.ini'
 settings_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), config_file)
@@ -70,22 +69,18 @@ cycles = 1
 safe_C = 400
 safe_D = 300
 chrg_rate = 100
-dchrg_rate= 100
-battery_use = ""
+dchrg_rate = 100
 prgm_id = None
 id_list = []
 prgm_list = []
 prgm_index = []
-run_text = ""
 max_charge_time = 180
-run_status = 0
 run_text = "Enter run information"
-time_interval = 10 #seconds
+time_interval = 10 # seconds
 final_read = {'final_mah':"", 'final_t':"", 'final_V':"", 'final_T':""}
-#next is set in start_device(), which is obtained from imax.start_imax
+# next is set in start_device(), which is obtained from imax.start_imax
 device_dict = {'device':None, 'EndPt_out':None, 'EndPt_in':None}
-text_update = None 
-settings_dict = {}
+text_update = None
 read_data = {}
 data_out_packet = []
 device_started = False
@@ -96,12 +91,12 @@ run_status = 0
 settings_packet = []
 battery_use = 'Enter short battery use info.'
 
-#used for cycling time fix
+# used for cycling time fix
 base_time = 0
 old_time = 0
 
 #slider_max = 24050
-#used by delete method to reset conditions
+# used by delete method to reset conditions
 reset_settings = {'bat_type':config['BatterySettings']['bat_type'],
                   'cells':int(config['BatterySettings']['cells']), 
                   'slider_max':int(config['SelectorSettings']['slider_max']),
@@ -110,7 +105,6 @@ reset_settings = {'bat_type':config['BatterySettings']['bat_type'],
                   'nominal_mah':nominal_mah_start,
                   'DC_or_CD':0,
                   'cycles':str(1),
-                  'cells':str(1),
                   'safe_C':str(400),
                   'safe_D':str(300),
                   'chrg_rate':str(100),
@@ -141,25 +135,25 @@ NiXX_CD_Modes ={"Charge":0x00, "AutoCharge":0x01, "Discharge":0x02, "Re-Peak":0x
 LiXX_CD_Modes = {"Charge":0x00, "Discharge":0x01, "Storage":0x02, "Fast Charge":0x03, "Balance Charge":0x04} #byte 6
 Pb_CD_Modes = {"Charge":0x00, "Discharge":0x01}
 
-#sensitivities based on either settable sensitivity or for LiXX uses maxV
+# sensitivities based on either settable sensitivity or for LiXX uses maxV
 sensitivity = {'NiMH':0x0004, 'NiCd':0x0004, 'LiPO':0x1068, 'LiFe':0x0e74, 'LiHV':0x10fe, 'LiION':0x0e10, 'Pb':0x0000} #bytes 13 & 14
 DC_CD = {0:0x00, 1:0x01} 
 safe_C_frac = {'NiMH':0.40, 'NiCd':0.40, 'LiPO':0.50, 'LiFe':1.0, 'LiION':0.50, 'LiHV':0.50, 'Pb':0.30}
 cells_rng = {'NiMH':13, 'NiCd':13, 'LiPO':13, 'LiFe':13, 'LiION':13, 'LiHV':13, 'Pb':7}  
 
-#Master lis of Imax supported battery types
-bat_types =  ['NiMH', 'NiCd', 'LiPO', 'LiFe', 'LiION', 'LiHV', 'Pb']
-#Charge options vary by battery type.
+# Master list of Imax supported battery types
+bat_types = ['NiMH', 'NiCd', 'LiPO', 'LiFe', 'LiION', 'LiHV', 'Pb']
+# Charge options vary by battery type.
 generic_chrg = ["Charge", "Cycle", "Re-Peak", "AutoCharge", "Balance Charge", "Fast Charge", "Storage"] 
-NiXX_options =["Charge", "Discharge", "Cycle", "Re-Peak", "AutoCharge"] 
+NiXX_options = ["Charge", "Discharge", "Cycle", "Re-Peak", "AutoCharge"]
 LiXX_options = ["Charge", "Discharge", "Balance Charge", "Fast Charge", "Storage"]
 Pb_options = ["Charge", "Discharge"]
 
-#generate master lis of all selectable widgets
+# Generate master list of all selectable widgets
 sel_type = ['bat','chrg', 'dchrg', 'slider', 'cells' 'rad', 'chrg_rate', 'dchrg_rate', 'minV', 'DCrad']
 
-#limits dictionary with lists with values in order (taken from Imax B6 mine manual: 
-#[NomV/Cell, MaxChrgV/Cell, StorV/Cell, AllowableFastChrg, MinDischrgV/Cell]
+# limits dictionary with lists with values in order (taken from Imax B6 mine manual:
+# [NomV/Cell, MaxChrgV/Cell, StorV/Cell, AllowableFastChrg, MinDischrgV/Cell]
 limits = {'LiPO': [3700, 4200, 3800, 1,      [3000, 3300]], 
           'LiION':[3600, 4100, 3700, 1,      [2900, 3200]], 
           'LiFe': [3300, 3600, 3300, 4,      [2600, 2900]],
@@ -168,19 +162,19 @@ limits = {'LiPO': [3700, 4200, 3800, 1,      [3000, 3300]],
           'NiMH': [1200, 1500, None, [1, 2], [100, 1100]],
           'Pb':   [2000, 2460, None, 0.4,     1800]}
       
-#set options lists 
+# set options lists
 chrglist = [str(i) for i in range(100, 1100, 100)]
 dchrglist = [str(i) for i in range(100,2100, 100)]
-minV = limits[bat_type][4][1] #Not lowest, but conservative value for most cells
+minV = limits[bat_type][4][1]  # Not lowest, but conservative value for most cells
 minV_rng = [str(i) for i in range(limits[bat_type][4][0],limits[bat_type][4][1] + 100, 100)]
 
 maxV = limits[bat_type][1]          
-#Logic: The battery type is the most critical element to structure all
-#other parameters. Key off of that because it is the only locked set of options.
-#batery type drives many other parameters.
+# Logic: The battery type is the most critical element to structure all
+# other parameters. Key off of that because it is the only locked set of options.
+# batery type drives many other parameters.
 
-#Generte a master dictionary of various setttings. As a dictionary, it represents
-#a global way to store information in entire module
+# Generte a master dictionary of various setttings. As a dictionary, it represents
+# a global way to store information in entire module
 settings = {
               'bat_type':bat_type, 
               'cells':str(cells), 
@@ -216,12 +210,13 @@ settings = {
               'set_prgm':0
            }
         
-#----------------END INITIALIZE SETTINGS----------------------------------------------------
+# ----------------END INITIALIZE SETTINGS----------------------------------------------------
+
 
 def get_settings_packet():
-  #Builds the 64 bit settings packet as list to send to the imax
+  # Builds the 64 bit settings packet as list to send to the imax
   global settings_packet
-  #Build individual bytes
+  # Build individual bytes
   byte0 = (0x0f).to_bytes(1, 'big')
   byte1 = (0x16).to_bytes(1, 'big')
   byte2 = (0x05).to_bytes(1, 'big')
@@ -273,6 +268,7 @@ def get_settings_packet():
   #print(settings_packet)
   print('finished getting packet')
   return settings_packet
+
 
 def update_selects(b_type, sel_type):
   #Updates dependent widget parameters for both non program selector changes and program driven selector changes
@@ -466,11 +462,13 @@ def update_selects(b_type, sel_type):
       pass
     get_settings_packet()
     print('out of u_s')    
-  
+
+
 #-------------Create Widgets and Handlers---------------------------------------------------------      
 #Note issue with selects. They only have a ON_CHANGE event. Therefore, cannot pick same
 #value in list to repopulate back to an already picked value. Could not figure out a way around issue. 
- 
+
+
 select_chrg_type = Select(title="Charge Type", value="Charge", options= NiXX_options)
 def select_chrg_type_handler(attr, old, new):
   settings['chrg_type'] = new
@@ -479,12 +477,14 @@ def select_chrg_type_handler(attr, old, new):
 select_chrg_type.on_change('value', select_chrg_type_handler)
 #slider_max is set in config.ini
 
+
 maxmah_slider = Slider(start=200, end=slider_max, value=100, step=50, title="Bat. Specified Capacity, mah")
 def maxmah_handler(attr, old, new):
   settings['nominal_mah']= new
   print('Nominal mah selected: ' + str(new))
   update_selects(settings['bat_type'], 'slider')
 maxmah_slider.on_change('value', maxmah_handler)
+
 
 DC_radio_group = RadioGroup(labels=["Charge/Discharge", "Discharge/Charge"], active=0)
 def DC_radio_handler():
@@ -494,12 +494,14 @@ def DC_radio_handler():
   #update_selects(bat_type, 'DCrad')  
 DC_radio_group.on_change('active', lambda attr, old, new:DC_radio_handler())
 
+
 select_cells = Select(title = "No. of Cells", value ="0", options = [str(i) for i in range(1, cells_rng[settings['bat_type']])])
 def select_cells_handler(attr, old, new):
   settings['cells'] = new
   print('cells selected: ' + str(new))
   update_selects(settings['bat_type'], 'cells')
 select_cells.on_change('value', select_cells_handler)
+
 
 #Reminder select dropdowns only accept and return strings
 select_chrg_rate = Select(title = "Charge Rate, mA", value = str(round((0.4*int(settings['nominal_mah']))/100)*100), options = settings['chrglist'])
@@ -509,6 +511,7 @@ def select_chrg_rate_handler(attr, old, new):
   update_selects(settings['bat_type'], 'chrg_rate')
 select_chrg_rate.on_change('value', select_chrg_rate_handler)
 
+
 select_dchrg_rate = Select(title = "Discharge Rate, mA", value =str(round((0.3*int(settings['nominal_mah']))/100)*100), options = settings['dchrglist'])
 def select_dchrg_rate_handler(attr, old, new):
   print('in select_dchrg')
@@ -516,12 +519,14 @@ def select_dchrg_rate_handler(attr, old, new):
   update_selects(settings['bat_type'], 'dchrg_rate')
 select_dchrg_rate.on_change('value', select_dchrg_rate_handler)
 
+
 select_battype = Select(title = "Battery Type", value ="", options = ['NiMH', 'NiCd', 'LiPO', 'LiFe', 'LiION', 'LiHV', 'Pb'])
 def select_battype_handler(attr, old, new):
   settings['bat_type'] = new
   print('Battery type selected: ' + new)
   update_selects(settings['bat_type'], 'bat')
 select_battype.on_change('value', select_battype_handler)
+
 
 select_cycles = Select(title = "Cycles", value ="1", options = [str(i) for i in range(0,6)])
 def select_cycles_handler(attr, old, new):
@@ -536,6 +541,7 @@ def select_cycles_handler(attr, old, new):
   #update_selects(settings['bat_type'], 'cycles')
 select_cycles.on_change('value', select_cycles_handler)
 
+
 select_minV = Select(title = "Minimum Discarge Voltage/Cell, mV", value = settings['minV'], options =settings['minV_rng'])
 def select_minV_handler(attr, old, new):
   settings['minV'] = new
@@ -543,11 +549,13 @@ def select_minV_handler(attr, old, new):
   update_selects(settings['bat_type'], 'minV')
 select_minV.on_change('value', select_minV_handler)
 
+
 text_input = TextInput(value="Enter run information", title="Run Information:")
 def text_input_handler(attr, old, new):
   settings['run_text'] = new
   print("Updated label: " + new)
 text_input.on_change("value", text_input_handler)
+
 
 use_input = TextInput(value="Enter short battery use info", title="Battery Usage Title:")
 def use_input_handler(attr, old, new):
@@ -557,6 +565,7 @@ def use_input_handler(attr, old, new):
   else:
     settings['battery_use'] = new
 use_input.on_change("value", use_input_handler)
+
 
 def prgm_set(pset):
   #called by select_prgm_handler
@@ -597,6 +606,7 @@ def prgm_set(pset):
   #need to always keep settings_packet up to date
   get_settings_packet()
 
+
 #Dropdown widget for database stored programs
 select_prgm = Select(title = "Select Prgm to Run", value = "None", options = db_ops.get_prgms())
 def select_prgm_handler(attr, old, new):
@@ -613,6 +623,7 @@ def select_prgm_handler(attr, old, new):
 #Shucks! Next doesn't fire if select value not changed; there is no on_click event.
 #Get around? Future conisderation? 
 select_prgm.on_change('value', select_prgm_handler)
+
 
 #btn to save settings as program
 btn_savenew = Button(label="Save New", button_type = 'success')
@@ -639,6 +650,7 @@ def btn_savenew_handler():
       text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)      
 btn_savenew.on_click(btn_savenew_handler)
 
+
 btn_saveover = Button(label="Replace Program", button_type = 'primary')
 def btn_saveover_handler():
   #print('button save over worked')
@@ -660,6 +672,7 @@ def btn_saveover_handler():
       print(msg)
       text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)       
 btn_saveover.on_click(btn_saveover_handler)
+
 
 btn_delete = Button(label="Delete Program", button_type = 'danger')
 def btn_delete_handler():
@@ -692,11 +705,13 @@ def btn_delete_handler():
     text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
 btn_delete.on_click(btn_delete_handler)    
 
+
 textsource = ColumnDataSource(data=dict(time = [],msg = []))
 columns = [ 
   TableColumn(field="time", title="Time"), 
   TableColumn(field="msg", title="Msg", width = 600)]
 data_table = DataTable(source=textsource, columns=columns, width=600) 
+
 
 button_save = Button(label="Save Run Data", button_type = 'warning')
 def button_save_handler():
@@ -710,14 +725,17 @@ def button_save_handler():
   text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)     
 button_save.on_click(button_save_handler)
 
+
 def text_update(t, msg):
   global data_table
   print('msg: ', t, msg)
   new_data = dict(time=[t], msg=[msg],) 
-  textsource.stream(new_data, 20) #adding the value is a scrolloff lines
+  textsource.stream(new_data, 20)  # adding the value is a scrolloff lines
   data_table.update()
 
+
 import imax
+
 
 def get_final_data():
   #triggers final values to be read from imax 
@@ -743,13 +761,14 @@ def get_final_data():
   w_out = device.write(EndPt_out, imax_settings_out)
   idle_settings = device.read(EndPt_in.bEndpointAddress, EndPt_in.wMaxPacketSize)
   #print('idle_settings are: ', idle_settings)
-  
+
+
 def start_device():
-  #----sets up device if connected, returns imax settings, configures, and sets data dictionary---
-  #check for device, if not there wait for connection.
+  # ----sets up device if connected, returns imax settings, configures, and sets data dictionary---
+  # check for device, if not there wait for connection.
   global read_data
   global device_dict
-  device_str = imax.find_my_device() #returns True if device found 
+  device_str = imax.find_my_device()  # returns True if device found
   if "No" in device_str:
     text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), device_str) 
     print(device_str)
@@ -793,13 +812,15 @@ def start_device():
     msg = 'Problem transferring or starting Imax.'  
     text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
     return False
-        
+
+
 def add_lines(plot, source, cells_num = 0):
   #called from button_startstop_handler if bat_type LiPO, note that cells must be > 1
   color_list = ['orange', 'yellow', 'green', 'blue', 'violet', 'darkmagenta']
   if cells_num > 1:
     for i in range(cells_num):
       p1.line(x = 'timer', y = 'cell'+ str(i+1), source = source, color = color_list[i], line_width = 2)
+
 
 #Button to set up and start Imax B6 Mini
 button_startstop = Button(label = "Start", button_type = 'success')
@@ -833,6 +854,7 @@ def button_startstop_handler():
   if "Li" in settings['bat_type']:
     add_lines(p1, source, cells_num = int(settings['cells']))
 button_startstop.on_click(button_startstop_handler)
+
 
 def read_imax():
   #Called by the Update) callback fcn to read current values from imax
@@ -884,40 +906,41 @@ def read_imax():
   read_data['cell5'].append(int(str(data[25]*256 + data[26])))
   read_data['cell6'].append(int(str(data[27]*256 + data[28])))
  
-  #print the data to console(same sequence Milek7 used with hidapi..apreciated effort.
-  #dump to console (for checking). Comment out or deleted for faster response
+  # print the data to console(same sequence Milek7 used with hidapi..apreciated effort.
+  # dump to console (for checking). Comment out or deleted for faster response
   print(
-      str(data[4]) + ", " +                                 #state
-      str(data[5] * 256 + data[6]) + ", " +                 #energy
-      str(data[7] * 256 + data[8]) + ", " +                 #timer     
-      str((data[9] * 256 + data[10]) / 1000.0) + ", " +     #voltage
-      str((data[11] * 256 + data[12]) / 1000.0) + ", " +    #current
-      str(data[13]) + ", " +                                #ext temp
-      str(data[14]) + ", " +                                #int temp
-      str((data[17] * 256 + data[18]) / 1000.0) + ", " +    #cell 1    
-      str((data[19] * 256 + data[20]) / 1000.0) + ", " +    #cels 2
-      str((data[21] * 256 + data[22]) / 1000.0) + ", " +    #cell 3
-      str((data[23] * 256 + data[24]) / 1000.0) + ", " +    #cell 4
-      str((data[25] * 256 + data[26]) / 1000.0) + ", " +    #cell 5
-      str((data[27] * 256 + data[28]) / 1000.0)             #cell 6
+      str(data[4]) + ", " +                                 # state
+      str(data[5] * 256 + data[6]) + ", " +                 # energy
+      str(data[7] * 256 + data[8]) + ", " +                 # timer
+      str((data[9] * 256 + data[10]) / 1000.0) + ", " +     # voltage
+      str((data[11] * 256 + data[12]) / 1000.0) + ", " +    # current
+      str(data[13]) + ", " +                                # ext temp
+      str(data[14]) + ", " +                                # int temp
+      str((data[17] * 256 + data[18]) / 1000.0) + ", " +    # cell 1
+      str((data[19] * 256 + data[20]) / 1000.0) + ", " +    # cels 2
+      str((data[21] * 256 + data[22]) / 1000.0) + ", " +    # cell 3
+      str((data[23] * 256 + data[24]) / 1000.0) + ", " +    # cell 4
+      str((data[25] * 256 + data[26]) / 1000.0) + ", " +    # cell 5
+      str((data[27] * 256 + data[28]) / 1000.0)             # cell 6
     )
   
-  #Pull out the run status so can see if run stopped: see docs for values?
+  # Pull out the run status so can see if run stopped: see docs for values?
   settings['run_status'] = int(str(data[4]))
   return settings['run_status'], out_data
 
-#initialize read_data dictionary for plots
-#to expand the resolution on plots would need to first get current battery 
-#voltage by sending an idle request at this stage, but we have not initialized
-#the imax yet. Could use source.patch?
+
+# initialize read_data dictionary for plots
+# to expand the resolution on plots would need to first get current battery
+# voltage by sending an idle request at this stage, but we have not initialized
+# the imax yet. Could use source.patch?
 out_data = {'mah':[0], 'timer':[0], 'volts':[0], 'current':[0], 
               'ext_T':[0], 'internal_T':[0], 'cell1':[0], 'cell2':[0],
               'cell3':[0],'cell4':[0], 'cell5':[0], 'cell6':[0]}
-#time_interval = 5 #seconds
+#time_interval = 5 # seconds
 
 source = ColumnDataSource(data = out_data)
 
-#Generate two plots, for capacity and voltage
+# Generate two plots, for capacity and voltage
 p = figure(width=400, height=400)
 p.title.text = "Capactiy vs. Time"
 p.title.text_color = "black"
@@ -928,7 +951,7 @@ p.xaxis.axis_label = "Time, s"
 p.yaxis.axis_label = "Capacity (mah)"
 r_cap = p.line(x = 'timer', y = 'mah', source = source, color="red", line_width=2)
 
-#Set the voltabe plot; complicated a  bit by battery type
+# Set the voltabe plot; complicated a  bit by battery type
 p1 = figure(width=400, height=400)
 p1.title.text = "Voltage vs. Time"
 p1.title.text_color = "black"
@@ -939,16 +962,17 @@ p1.xaxis.axis_label = "Time, s"
 p1.yaxis.axis_label = "Voltage. mV"
 rx = p1.line(x = 'timer', y = 'volts', source = source, color = "firebrick", line_width=2)
 
+
 def update():
-  #Bokeh method periodic callback referenced by btnstartstop
+  # Bokeh method periodic callback referenced by btnstartstop
   global out_data
   global source
   global read_data
   device = device_dict['device']
   if device:
-    #note "new_data" is bokeh specific to only add to source
+    # note "new_data" is bokeh specific to only add to source
     settings['run_status'], new_data = read_imax()
-    #At least first 2 packets have run_status = 3, so bypass before checking
+    # At least first 2 packets have run_status = 3, so bypass before checking
     #print('status: ', run_status, 'length of read_data: ',len(read_data['mah']))
     if len(read_data['mah']) > 2: 
       if settings['run_status'] < 2 and button_startstop.label == "Stop":
@@ -964,6 +988,7 @@ def update():
     msg = '; Device no longer connected.'
     text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
     button_startstop_handler()    
+
 
 #w1 = row(select_battype, select_chrg_type) #, width = 300) #sizing_mode = 'fixed')
 w1 = column(select_battype, select_chrg_type, select_cells) #, width = 300) #sizing_mode = 'fixed')
@@ -981,7 +1006,7 @@ Layit = gridplot([[column(w1.children+w2.children+w3.children+w4.children+w5.chi
 
 curdoc().add_root(Layit) 
 #curdoc().add_root(data_table)
-#lays out in one long row at top
+# lays out in one long row at top
 #Layit = gridplot([w1.children+w2.children+w3.children+w4.children+w5.children+w5.children], ncol = 1) 
 #Layit = gridplot([w1.children, w2.children, w3.children, w4.children, w5.children], ncol = 1) 
 #curdoc().add_root(Layit) 
