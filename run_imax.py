@@ -1,18 +1,18 @@
 #
 """
-Copyright © 2018, Gary Dyrkdacz <gdyrkacz@gmail.com> 
+Copyright © 2018, Gary Dyrkdacz <gdyrkacz@gmail.com>
  
-Permission to use, copy, modify, and/or distribute this software for any 
-purpose with or without fee is hereby granted,  provided that the above 
-copyright notice and this permission notice appear in all copies. 
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted,  provided that the above
+copyright notice and this permission notice appear in all copies.
  
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES 
-WITH  REGARD  TO  THIS  SOFTWARE  INCLUDING  ALL  IMPLIED  WARRANTIES OF 
-MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR 
-ANY SPECIAL,  DIRECT,  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES 
-WHATSOEVER RESULTING  FROM LOSS OF USE,  DATA OR PROFITS,  WHETHER IN AN 
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF 
-OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH  REGARD  TO  THIS  SOFTWARE  INCLUDING  ALL  IMPLIED  WARRANTIES OF
+MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL,  DIRECT,  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING  FROM LOSS OF USE,  DATA OR PROFITS,  WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 """
 
 # Application using default browser to open dashboard to control an Imax B6 Mini Charger.
@@ -99,7 +99,7 @@ old_time = 0
 #slider_max = 24050
 # used by delete method to reset conditions
 reset_settings = {'bat_type':config['BatterySettings']['bat_type'],
-                  'cells':int(config['BatterySettings']['cells']), 
+                  'cells':int(config['BatterySettings']['cells']),
                   'slider_max':int(config['SelectorSettings']['slider_max']),
                   'nominal_mah_start':int(config['SelectorSettings']['nominal_mah_start']),
                   'chrg_type':"Charge",
@@ -123,7 +123,7 @@ reset_settings = {'bat_type':config['BatterySettings']['bat_type'],
                   'set_prgm':0}
 
 
-notice1 = Div(text="""The data input here are for logging identification and saving conditions, which are already manually chosen 
+notice1 = Div(text="""The data input here are for logging identification and saving conditions, which are already manually chosen
                 on the imax. They do not set or reset the imax.""",
                 sizing_mode = "scale_width")
 settings_dict = {'max_charge_time':"", 'max_input_V':"", 'cycle_delay':""}
@@ -138,14 +138,14 @@ Pb_CD_Modes = {"Charge":0x00, "Discharge":0x01}
 
 # sensitivities based on either settable sensitivity or for LiXX uses maxV
 sensitivity = {'NiMH':0x0004, 'NiCd':0x0004, 'LiPO':0x1068, 'LiFe':0x0e74, 'LiHV':0x10fe, 'LiION':0x0e10, 'Pb':0x0000} #bytes 13 & 14
-DC_CD = {0:0x00, 1:0x01} 
+DC_CD = {0:0x00, 1:0x01}
 safe_C_frac = {'NiMH':0.40, 'NiCd':0.40, 'LiPO':0.50, 'LiFe':1.0, 'LiION':0.50, 'LiHV':0.50, 'Pb':0.30}
-cells_rng = {'NiMH':13, 'NiCd':13, 'LiPO':13, 'LiFe':13, 'LiION':13, 'LiHV':13, 'Pb':7}  
+cells_rng = {'NiMH':13, 'NiCd':13, 'LiPO':13, 'LiFe':13, 'LiION':13, 'LiHV':13, 'Pb':7}
 
 # Master list of Imax supported battery types
 bat_types = ['NiMH', 'NiCd', 'LiPO', 'LiFe', 'LiION', 'LiHV', 'Pb']
 # Charge options vary by battery type.
-generic_chrg = ["Charge", "Cycle", "Re-Peak", "AutoCharge", "Balance Charge", "Fast Charge", "Storage"] 
+generic_chrg = ["Charge", "Cycle", "Re-Peak", "AutoCharge", "Balance Charge", "Fast Charge", "Storage"]
 NiXX_options = ["Charge", "Discharge", "Cycle", "Re-Peak", "AutoCharge"]
 LiXX_options = ["Charge", "Discharge", "Balance Charge", "Fast Charge", "Storage"]
 Pb_options = ["Charge", "Discharge"]
@@ -155,10 +155,10 @@ sel_type = ['bat','chrg', 'dchrg', 'slider', 'cells' 'rad', 'chrg_rate', 'dchrg_
 
 # limits dictionary with lists with values in order (taken from Imax B6 mine manual:
 # [NomV/Cell, MaxChrgV/Cell, StorV/Cell, AllowableFastChrg, MinDischrgV/Cell]
-limits = {'LiPO': [3700, 4200, 3800, 1,      [3000, 3300]], 
-          'LiION':[3600, 4100, 3700, 1,      [2900, 3200]], 
+limits = {'LiPO': [3700, 4200, 3800, 1,      [3000, 3300]],
+          'LiION':[3600, 4100, 3700, 1,      [2900, 3200]],
           'LiFe': [3300, 3600, 3300, 4,      [2600, 2900]],
-          'LiHV': [3700, 4200, 3800, 1,      [3000, 3300]],          
+          'LiHV': [3700, 4200, 3800, 1,      [3000, 3300]],
           'NiCd': [1200, 1500, None, [1, 2], [100, 1100]],
           'NiMH': [1200, 1500, None, [1, 2], [100, 1100]],
           'Pb':   [2000, 2460, None, 0.4,     1800]}
@@ -169,7 +169,7 @@ dchrglist = [str(i) for i in range(100,2100, 100)]
 minV = limits[bat_type][4][1]  # Not lowest, but conservative value for most cells
 minV_rng = [str(i) for i in range(limits[bat_type][4][0],limits[bat_type][4][1] + 100, 100)]
 
-maxV = limits[bat_type][1]          
+maxV = limits[bat_type][1]
 # Logic: The battery type is the most critical element to structure all
 # other parameters. Key off of that because it is the only locked set of options.
 # batery type drives many other parameters.
@@ -177,26 +177,26 @@ maxV = limits[bat_type][1]
 # Generte a master dictionary of various setttings. As a dictionary, it represents
 # a global way to store information in entire module
 settings = {
-              'bat_type':bat_type, 
-              'cells':str(cells), 
-              'chrg_type':chrg_type, 
-              'nominal_mah':str(nominal_mah), 
-              'DC_or_CD':DC_or_CD, 
-              'cycles':str(cycles), 
-              'safe_C':str(safe_C), 
-              'safe_D':str(safe_D), 
-              'chrg_rate':str(chrg_rate), 
+              'bat_type':bat_type,
+              'cells':str(cells),
+              'chrg_type':chrg_type,
+              'nominal_mah':str(nominal_mah),
+              'DC_or_CD':DC_or_CD,
+              'cycles':str(cycles),
+              'safe_C':str(safe_C),
+              'safe_D':str(safe_D),
+              'chrg_rate':str(chrg_rate),
               'chrglist':chrglist,
-              'dchrg_rate':str(dchrg_rate), 
-              'dchrglist':dchrglist, 
-              'maxV':str(maxV), 
-              'minV':str(minV), 
-              'minV_rng':minV_rng, 
-              'max_charge_time':str(max_charge_time), 
-              'battery_use':battery_use, 
-              'prgm_id':prgm_id, 
-              'prgmn_list':prgm_list, 
-              'prgm_index':prgm_index, 
+              'dchrg_rate':str(dchrg_rate),
+              'dchrglist':dchrglist,
+              'maxV':str(maxV),
+              'minV':str(minV),
+              'minV_rng':minV_rng,
+              'max_charge_time':str(max_charge_time),
+              'battery_use':battery_use,
+              'prgm_id':prgm_id,
+              'prgmn_list':prgm_list,
+              'prgm_index':prgm_index,
               'id_list':id_list,
               'device_started':device_started,
               'time_interval':time_interval,
@@ -239,14 +239,14 @@ def get_settings_packet():
   #get minimum voltage; 2 bytes
   abyte = int(settings['minV']).to_bytes(2, 'big')
   byte11 = abyte[:1]
-  byte12 = abyte[-1:] 
+  byte12 = abyte[-1:]
   #get sensitivities imax uses for knowing when to stop runs; 2 bytes
   abyte = sensitivity[settings['bat_type']].to_bytes(2, 'big')
   byte13 = abyte[:1]
   byte14 = abyte[-1:]
-  #get byte for charge/discharge or discharge/charge   
+  #get byte for charge/discharge or discharge/charge
   byte15 = DC_CD[int(settings['DC_or_CD'])].to_bytes(1,'big')
-  #get byte for number of CD/DC cycles 
+  #get byte for number of CD/DC cycles
   byte16 = int(settings['cycles']).to_bytes(1, 'big')
   #Build the initial settings packet of byte values
   settings_packet = [byte0, byte1, byte2, byte3, byte4, byte5, byte6, byte7,
@@ -254,7 +254,7 @@ def get_settings_packet():
                      byte16]
   #Add in the static bytes values to byte 23
   xbytelist = [(0).to_bytes(1, 'big')]*7 + [(0xff).to_bytes(1, 'big')]*2
-  settings_packet = settings_packet + xbytelist 
+  settings_packet = settings_packet + xbytelist
   #byte23 is the low order byte from sum of bytes 2->23
   #add bytes 2 to 23 (first convert to integers; convert to byte string; get lowest byte
   sm = 0
@@ -275,14 +275,14 @@ def update_selects(b_type, sel_type):
   #Updates dependent widget parameters for both non program selector changes and program driven selector changes
   #b_type = battery type; sel_type = selector changed or clicked
   #Explicitly called from select handlers, but for programs implicitly called from prgm_set() method
-  #prgm_set() uses settings['set_prgm'] to control if user setting values (0) or prgm being recalled (1) 
+  #prgm_set() uses settings['set_prgm'] to control if user setting values (0) or prgm being recalled (1)
   #Order of changing values is important, becasue of dependencies of varous pramaters
   #good news is changing value and options is sufficient.
-  #bad news there are redundancies for certain calls  
+  #bad news there are redundancies for certain calls
   #print('in u_s')
   #Is user updating individual widgets, and not a program?
   #settings['set_prgm'] is set and reset in prgm_set(), which in turn is called by select_prgm_handler
-  if settings['set_prgm'] == 0: 
+  if settings['set_prgm'] == 0:
     print('u_s: in prgm False')
     if sel_type == 'bat': #battery type changed
       print('in u_s bat; bat type is', b_type)
@@ -300,29 +300,29 @@ def update_selects(b_type, sel_type):
       elif b_type == 'Pb':
         select_chrg_type.options = Pb_options
         if not select_chrg_type.value in Pb_options:
-           select_chrg_type.value = 'Charge' 
+           select_chrg_type.value = 'Charge'
       #get safe_C from safe C values dict defined at top of module
-      safe_C = str(round((safe_C_frac[b_type]*int(settings['nominal_mah']))/100)*100)      
+      safe_C = str(round((safe_C_frac[b_type]*int(settings['nominal_mah']))/100)*100)
       print('in bat: safe C is: ', safe_C, ' of type ', type(safe_C))
       settings['chrg_rate'] = safe_C
       settings['safe_C'] = safe_C
       select_chrg_rate.value = safe_C
       print('bat reports chrg_rate value set to: ', safe_C)
-      if b_type != 'Pb':      
+      if b_type != 'Pb':
         settings['minV'] = str(limits[b_type][4][1])
         settings['minV_rng'] = [str(i) for i in range(limits[b_type][4][0], limits[b_type][4][1]+100, 100)]
         #also update cells options
       else: #is Pb
         settings['minV'] = str(limits[b_type][4])
         settings['minV_rng'] = [str(limits[b_type][4])]
-      select_cells.options = [str(i) for i in range(1, cells_rng[b_type])]  
+      select_cells.options = [str(i) for i in range(1, cells_rng[b_type])]
       print('in bat, minV is: ', minV)
-      select_minV.options = settings['minV_rng']     
+      select_minV.options = settings['minV_rng']
       settings['maxV'] = str(limits[b_type][1]) #per cell
       select_minV.value = settings['minV']
       print('leaving u_s bat')
     #Deal with slider change; affects charge rate (mA)
-    #User may have already changed chrg_rate first, just watch for outside allowed range  
+    #User may have already changed chrg_rate first, just watch for outside allowed range
     if  sel_type == 'slider': #returns a float
       print('in u_s slider')
       if int(settings['nominal_mah']) >= 100:
@@ -330,20 +330,20 @@ def update_selects(b_type, sel_type):
         settings['safe_C'] = safe_C
         #User may have set chrg rate before changing capacity
         #only get involved if chrg_rate exceeds bat capacity/cell
-        select_chrg_rate.value = settings['safe_C']        
+        select_chrg_rate.value = settings['safe_C']
         if int(settings['chrg_rate']) > limits[b_type][0]:
           #slider returns mah at 50 mA intervals
-          # only allow masimum of of 1C rates as maximum    
+          # only allow masimum of of 1C rates as maximum
           #print('new_rate: ', select_chrg_rate.value)
           settings['chrg_rate'] = settings['safe_C']
         settings['chrglist'] = [str(i) for i in range(0, int(settings['nominal_mah']) + 100, 100)]
-        select_chrg_rate.options = settings['chrglist'] 
+        select_chrg_rate.options = settings['chrglist']
         if b_type == "Pb":
           settings['safe_C'] = str(round((0.3*int(settings['nominal_mah']))/100)*100)
           settings['chrglist'] = [str(i) for i in range(0, int(settings['nominal_mah']) + 100, 100)]
         #lock safe discharge at 300 mah; sort of mimics max draw on receiver pack
         safe_D = str(300)
-        settings['dchrglist'] = [str(i) for i in range(100, 2000, 100)] #same as Imax 
+        settings['dchrglist'] = [str(i) for i in range(100, 2000, 100)] #same as Imax
         select_dchrg_rate.options = settings['dchrglist']
         print('leaving us_slider')
     if  sel_type == "cells":
@@ -375,7 +375,7 @@ def update_selects(b_type, sel_type):
             settings['minV_rng'] = [str(limits[b_type][4])]
         else: #chrg type must be discharge, go with safest value, but give range choice
           settings['minV'] = str(limits[b_type][4][1])
-          settings['minV_rng'] = [str(i) for i in range(limits[b_type][4][0],limits[b_type][4][1] + 100, 100)] 
+          settings['minV_rng'] = [str(i) for i in range(limits[b_type][4][0],limits[b_type][4][1] + 100, 100)]
           select_minV.value = settings['minV']
           select_minV.options = settings['minV_rng']
           print('minV is: ', settings['minV'])
@@ -384,12 +384,12 @@ def update_selects(b_type, sel_type):
       settings['chrglist'] = [str(i) for i in range(0, int(settings['nominal_mah']) + 60, 100)]
       select_chrg_rate.options = settings['chrglist']
     if sel_type == 'dchrg_rate':
-     pass      
+     pass
     get_settings_packet()
     print('out of u_s')
   #BELOW - DEAL WITH SETTINGS DICTATED BY PROGRAM DRIVING CHANGES; SEE PRGM_SET()
   else:
-    print('u_s: in prgm True') 
+    print('u_s: in prgm True')
     if sel_type == 'bat': #battery type changed
       print('in u_s bat; b_type is ', b_type)
       #update all ranges and values
@@ -411,15 +411,15 @@ def update_selects(b_type, sel_type):
         select_minV.options = settings['minV_rng']
         select_cells.options = [str(i) for i in range(1,cells_rng[b_type])]
       else: #is Pb
-        settings['minV_rng'] = [str(limits[b_type][4])] 
+        settings['minV_rng'] = [str(limits[b_type][4])]
       select_minV.options = settings['minV_rng']
       settings['maxV'] = str(limits[b_type][1]) #per cell
       print('leaving u_s bat')
     #Deal with slider change; affects charge rate (mA)
-    #User may have already changed chrg_rate first, so just watch for outside allowed range  
+    #User may have already changed chrg_rate first, so just watch for outside allowed range
     if  sel_type == 'slider': #returns a float
       print('in prgm 1 u_s slider')
-      if int(settings['nominal_mah']) >= 100:  
+      if int(settings['nominal_mah']) >= 100:
         safe_C = str(round((safe_C_frac[b_type]*int(settings['nominal_mah']))/100)*100)
         print('pgm True; in slider: safe_C is: ', safe_C)
         settings['safe_C'] = safe_C
@@ -427,17 +427,17 @@ def update_selects(b_type, sel_type):
         if int(settings['chrg_rate']) > limits[b_type][0]:
           print('new_rate: ', select_chrg_rate.value)
         settings['chrglist'] = [str(i) for i in range(100, int(settings['nominal_mah']) + 100, 100)]
-        select_chrg_rate.options = settings['chrglist']        
-        safe_D = str(300)  
-        settings['dchrglist'] = [str(i) for i in range(100, 2000, 100)] #same as Imax 
+        select_chrg_rate.options = settings['chrglist']
+        safe_D = str(300)
+        settings['dchrglist'] = [str(i) for i in range(100, 2000, 100)] #same as Imax
         select_dchrg_rate.options = settings['dchrglist']
         print('leaving us_slider')
     if sel_type == "cells":
-      print('in u_s pgm True; cells') 
-      #Pb has different range, so check reset        
+      print('in u_s pgm True; cells')
+      #Pb has different range, so check reset
       select_cells.options = [str(i) for i in range(1, cells_rng[b_type])]
     #if sel_type == "cycles":
-       #print('in u_s prm 1 cycles:', settings['cycles']) 
+       #print('in u_s prm 1 cycles:', settings['cycles'])
     if sel_type == 'minV':
       print('minV value is: ', select_minV.value)
       if b_type in limits:
@@ -445,13 +445,13 @@ def update_selects(b_type, sel_type):
         if settings['chrg_type'] in generic_chrg: #cover all chrg options
           settings['maxV'] = str(limits[b_type][1]) #get list from dict, get 2nd max element
           print('maxV is: ', settings['maxV'])
-        else: #must be discharge option, 
+        else: #must be discharge option,
           if b_type != 'Pb':
-            settings['minV_rng'] = [str(i) for i in range(limits[b_type][4][0],limits[b_type][4][1] + 100, 100)] 
+            settings['minV_rng'] = [str(i) for i in range(limits[b_type][4][0],limits[b_type][4][1] + 100, 100)]
             select_minV.options = settings['minV_rng']
           else:
             settings['minV_rng'] = [str(limits[b_type][4])]
-            select_minV.options = settings['minV_rng']          
+            select_minV.options = settings['minV_rng']
         print('prgm 1 minV is: ', settings['minV'])
     if sel_type == 'chrg_rate':
       print('in u_s prgm 1 chrg_rate')
@@ -462,12 +462,12 @@ def update_selects(b_type, sel_type):
       #options are locked to 0 to 2 Amps
       pass
     get_settings_packet()
-    print('out of u_s')    
+    print('out of u_s')
 
 
-#-------------Create Widgets and Handlers---------------------------------------------------------      
+#-------------Create Widgets and Handlers---------------------------------------------------------
 #Note issue with selects. They only have a ON_CHANGE event. Therefore, cannot pick same
-#value in list to repopulate back to an already picked value. Could not figure out a way around issue. 
+#value in list to repopulate back to an already picked value. Could not figure out a way around issue.
 
 
 select_chrg_type = Select(title="Charge Type", value="Charge", options= NiXX_options)
@@ -490,9 +490,9 @@ maxmah_slider.on_change('value', maxmah_handler)
 DC_radio_group = RadioGroup(labels=["Charge/Discharge", "Discharge/Charge"], active=0)
 def DC_radio_handler():
   print('inDC handler')
-  settings['DC_or_CD'] = DC_radio_group.active 
+  settings['DC_or_CD'] = DC_radio_group.active
   print('Radio button option ' + str(DC_radio_group.active) + ' selected.')
-  #update_selects(bat_type, 'DCrad')  
+  #update_selects(bat_type, 'DCrad')
 DC_radio_group.on_change('active', lambda attr, old, new:DC_radio_handler())
 
 
@@ -533,7 +533,7 @@ select_cycles = Select(title = "Cycles", value ="1", options = [str(i) for i in 
 def select_cycles_handler(attr, old, new):
   print('in cycles')
   settings['cycles'] = new
-  if 'Ni' in settings['bat_type'] and settings['chrg_type'] == 'Cycle': 
+  if 'Ni' in settings['bat_type'] and settings['chrg_type'] == 'Cycle':
     if int(settings['cycles']) > 0:
       settings['cycles'] = new
   else:
@@ -570,7 +570,7 @@ use_input.on_change("value", use_input_handler)
 
 def prgm_set(pset):
   #called by select_prgm_handler
-  #updates settings dictionary and transfers picked 
+  #updates settings dictionary and transfers picked
   #program settings to widget values
   print('in prgm_set')
   settings['bat_type'] = pset.battery_type
@@ -581,13 +581,13 @@ def prgm_set(pset):
   settings['chrg_rate'] = pset.chrg_rate
   settings['dchrg_rate'] = pset.dchrg_rate
   settings['DC_or_CD'] = pset.DC_CD
-  settings['cycles'] = pset.cycles  
+  settings['cycles'] = pset.cycles
   settings['cycle_delay'] = pset.cycle_delay
-  settings['max_charge_time'] = pset.max_charge_time  
+  settings['max_charge_time'] = pset.max_charge_time
   settings['minV'] = pset.minV
   settings['prgm_id'] = pset.id
   #Force all the changes to widget values from the picked program
-  #Some changes causes a cascade of changes reconciled in update_selects()  
+  #Some changes causes a cascade of changes reconciled in update_selects()
   #first set trigger notice for update-selects that prgm is changing values, not user.
   settings['set_prgm'] = 1
   select_battype.value = settings['bat_type']
@@ -616,13 +616,13 @@ def select_prgm_handler(attr, old, new):
     print('Selected prgm is: ', new)
     if new != 'None':
       #query database using battery_use
-      prgm_settings = db_ops.session.query(Programs).filter_by(battery_use=new).first() 
+      prgm_settings = db_ops.session.query(Programs).filter_by(battery_use=new).first()
       print('prgm id returned is: ', prgm_settings.id)
       #q = db_ops.session.query(Programs).filter(Programs.battery_use == new).first()
       #apply the chosen program settings
       prgm_set(prgm_settings)
 #Shucks! Next doesn't fire if select value not changed; there is no on_click event.
-#Get around? Future conisderation? 
+#Get around? Future conisderation?
 select_prgm.on_change('value', select_prgm_handler)
 
 
@@ -631,47 +631,47 @@ btn_savenew = Button(label="Save New", button_type = 'success')
 def btn_savenew_handler():
   #print('button save new worked')
   save_op = 1
-  print('btn save battery_use to be saved is: ', settings['battery_use']) 
+  print('btn save battery_use to be saved is: ', settings['battery_use'])
   if len(settings['battery_use']) != 0:
-    subsettings =  {'bat_type':settings['bat_type'], 'battery_use':settings['battery_use'], 'chrg_type':settings['chrg_type'], 
-                  'chrg_rate':settings['chrg_rate'], 'dchrg_rate':settings['dchrg_rate'], 'nominal_mah':settings['nominal_mah'], 
-                  'DC_or_CD':settings['DC_or_CD'], 'cycles':settings['cycles'], 'cells':settings['cells'], 
+    subsettings =  {'bat_type':settings['bat_type'], 'battery_use':settings['battery_use'], 'chrg_type':settings['chrg_type'],
+                  'chrg_rate':settings['chrg_rate'], 'dchrg_rate':settings['dchrg_rate'], 'nominal_mah':settings['nominal_mah'],
+                  'DC_or_CD':settings['DC_or_CD'], 'cycles':settings['cycles'], 'cells':settings['cells'],
                   'minV':settings['minV'], 'cycle_delay':settings['cycle_delay'], 'max_charge_time':settings['max_charge_time']}
     print('going db')
     did_save = db_ops.to_db(save_op, subsettings)
     print('out of save')
     if did_save:
-      select_prgm.options = db_ops.get_prgms()  
+      select_prgm.options = db_ops.get_prgms()
       msg = 'New program settings saved as: [' + subsettings['battery_use']+']'
       print(msg)
-      text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)   
+      text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
     else:
       msg = 'Settings not saved; something went wrong.'
       print(msg)
-      text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)      
+      text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
 btn_savenew.on_click(btn_savenew_handler)
 
 
 btn_saveover = Button(label="Replace Program", button_type = 'primary')
 def btn_saveover_handler():
   #print('button save over worked')
-  if settings['bat_type'] != 'None':  
+  if settings['bat_type'] != 'None':
     save_op = 2
-    subsettings =  {'bat_type':settings['bat_type'], 'battery_use':settings['battery_use'], 'chrg_type':settings['chrg_type'], 
-                  'chrg_rate':settings['chrg_rate'], 'dchrg_rate':settings['dchrg_rate'], 'nominal_mah':settings['nominal_mah'], 
-                  'DC_or_CD':settings['DC_or_CD'], 'cycles':settings['cycles'], 'cells':settings['cells'], 
-                  'minV':settings['minV'], 'cycle_delay':settings['cycle_delay'], 'max_charge_time':settings['max_charge_time']} 
+    subsettings =  {'bat_type':settings['bat_type'], 'battery_use':settings['battery_use'], 'chrg_type':settings['chrg_type'],
+                  'chrg_rate':settings['chrg_rate'], 'dchrg_rate':settings['dchrg_rate'], 'nominal_mah':settings['nominal_mah'],
+                  'DC_or_CD':settings['DC_or_CD'], 'cycles':settings['cycles'], 'cells':settings['cells'],
+                  'minV':settings['minV'], 'cycle_delay':settings['cycle_delay'], 'max_charge_time':settings['max_charge_time']}
     print('savenew: max charge time: ', settings['max_charge_time'])
     did_save = db_ops.to_db(save_op, subsettings, settings['prgm_id'])
     if did_save:
-      select_prgm.options = db_ops.get_prgms()  
+      select_prgm.options = db_ops.get_prgms()
       msg = 'Settings saved as: ' + subsettings['battery_use']
       print(msg)
-      text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)   
+      text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
     else:
       msg = 'Settings not saved; something went wrong.'
       print(msg)
-      text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)       
+      text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
 btn_saveover.on_click(btn_saveover_handler)
 
 
@@ -679,7 +679,7 @@ btn_delete = Button(label="Delete Program", button_type = 'danger')
 def btn_delete_handler():
   #print('button delete worked')
   delete_op = 3
-  subsettings =  {'battery_use':settings['battery_use']} 
+  subsettings =  {'battery_use':settings['battery_use']}
   print('prgm id in delete is: ', settings['prgm_id'])
   did_delete = db_ops.to_db(delete_op, subsettings, settings['prgm_id'])
   if did_delete:
@@ -704,33 +704,33 @@ def btn_delete_handler():
     msg = 'Program not deleted; not found.'
     print(msg)
     text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
-btn_delete.on_click(btn_delete_handler)    
+btn_delete.on_click(btn_delete_handler)
 
 
 textsource = ColumnDataSource(data=dict(time = [],msg = []))
-columns = [ 
-  TableColumn(field="time", title="Time"), 
+columns = [
+  TableColumn(field="time", title="Time"),
   TableColumn(field="msg", title="Msg", width = 600)]
-data_table = DataTable(source=textsource, columns=columns, width=600) 
+data_table = DataTable(source=textsource, columns=columns, width=600)
 
 
 button_save = Button(label="Save Run Data", button_type = 'warning')
 def button_save_handler():
   global read_data
   #print('button save worked')
-  run_modes= {'bat_type':settings['bat_type'], 'chrg_type':settings['chrg_type'], 'nominal_mah':settings['nominal_mah'], 
+  run_modes= {'bat_type':settings['bat_type'], 'chrg_type':settings['chrg_type'], 'nominal_mah':settings['nominal_mah'],
               'DC_or_CD':settings['DC_or_CD'], 'cycles':settings['cycles'], 'cells':settings['cells'], 'run_text':settings['run_text']}
   excel_out = imax.write_excel_file(run_modes, settings['final_read'], read_data, settings['settings_dict'])
   msg = 'Data saved to: ' + excel_out
   print(msg)
-  text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)     
+  text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
 button_save.on_click(button_save_handler)
 
 
 def text_update(t, msg):
   global data_table
   print('msg: ', t, msg)
-  new_data = dict(time=[t], msg=[msg],) 
+  new_data = dict(time=[t], msg=[msg],)
   textsource.stream(new_data, 20)  # adding the value is a scrolloff lines
   data_table.update()
 
@@ -739,7 +739,7 @@ import imax
 
 
 def get_final_data():
-  #triggers final values to be read from imax 
+  #triggers final values to be read from imax
   global device_dict
   device = device_dict['device']
   EndPt_out = device_dict['EndPt_out']
@@ -749,7 +749,7 @@ def get_final_data():
   final_data = device.read(EndPt_in.bEndpointAddress,EndPt_in.wMaxPacketSize)
   if final_data:
     final_mah = str(final_data[5] * 256 + final_data[6])            #energy
-    final_t = str(final_data[7] * 256 + final_data[8])              #timer    sec 
+    final_t = str(final_data[7] * 256 + final_data[8])              #timer    sec
     final_V = str((final_data[9] * 256 + final_data[10]) / 1000.0)  #voltage, V
     final_T = str(final_data[14])                                   #Temperature, deg C, if F???
 
@@ -771,7 +771,7 @@ def start_device():
   global device_dict
   device_str = imax.find_my_device()  # returns True if device found
   if "No" in device_str:
-    text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), device_str) 
+    text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), device_str)
     print(device_str)
     text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), 'Imax offline. Cycling for one minute.')
     nowtime = datetime.datetime.now()
@@ -780,19 +780,19 @@ def start_device():
       device_str = imax.find_my_device() #returns msg which has "No" in it ,if device not found
       if "No" in device_str:
         if datetime.datetime.now()> futuretime:
-          text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), 'Could not find device; check device and connection.')  
+          text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), 'Could not find device; check device and connection.')
           return False
-      time.sleep(1)  
+      time.sleep(1)
   print('device found')
-  text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), device_str)      
+  text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), device_str)
   #device found, engage device, get parameters and dictionaries
   get_settings_packet()
   if settings_packet:
     device_dict, read_data, settings_dict, data_out_packet = imax.start_imax(settings_packet)
-  #check cells and battery voltage max limits  
+  #check cells and battery voltage max limits
   settings['settings_dict'] = settings_dict
   battery_V = settings_dict['bat_V'] #obtained from idling packet, but transferred as V not mV
-  #print('limit test: ', limits[settings['bat_type']][1]*int(settings['cells']), battery_V*1000) 
+  #print('limit test: ', limits[settings['bat_type']][1]*int(settings['cells']), battery_V*1000)
   if limits[settings['bat_type']][1]*int(settings['cells']) < battery_V:
     print('Battery voltage is too high for number of cells specified.')
     msg = 'Battery voltage is too high for number of cells specified.'
@@ -801,16 +801,16 @@ def start_device():
   #print('read_data is: ', read_data)
   #Is imax running?
   #translation of next line: from read_data dict, get last element (as a list) and extract the value
-  print('run_status is ', read_data['run_status'][-1:][0]) 
+  print('run_status is ', read_data['run_status'][-1:][0])
   #check if at least got some kind or read back from Imax. Is status > default (0)
   if len(read_data['run_status'][-1:]) > 0:
     settings['run_status'] = read_data['run_status'][-1:][0]  #stored as integer
     settings['data_out_packet'] = data_out_packet
-    msg = 'Imax device found; settings transferred.' 
+    msg = 'Imax device found; settings transferred.'
     text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
     return True
   else:
-    msg = 'Problem transferring or starting Imax.'  
+    msg = 'Problem transferring or starting Imax.'
     text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
     return False
 
@@ -833,25 +833,25 @@ def button_startstop_handler():
   #label  = "Start": and device_started = False is initial start up condition
   if button_startstop.label == "Start":
     button_startstop.label = "Connecting"
-    #Find and initialize Imax device, returns True if found and started.    
+    #Find and initialize Imax device, returns True if found and started.
     settings['device_started'] = start_device()
     #returns True if device found,connected and started
     if settings['device_started']:
-      text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), 'Imax collecting data.') 
-      #print('device found')      
-      button_startstop.label = "Stop" 
+      text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), 'Imax collecting data.')
+      #print('device found')
+      button_startstop.label = "Stop"
       settings['start_cycle'] = curdoc().add_periodic_callback(update, data_update_interval)
     else:  # device was not started
-      button_startstop.label = "Start" 
-      msg = 'Imax start failed. See above messages for possible causes'     
+      button_startstop.label = "Start"
+      msg = 'Imax start failed. See above messages for possible causes'
       text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
-      settings['run_status'] = 0      
+      settings['run_status'] = 0
   else:  # deal with stop conditions; user pressed app stop button, or run_status > 1 (imax buttons pressed.)
     if button_startstop.label == "Stop":
       text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), 'Run stopped because status is ' + str(settings['run_status']))
       curdoc().remove_periodic_callback(settings['start_cycle'])
-      get_final_data()      
-      button_startstop.label = "Start" 
+      get_final_data()
+      button_startstop.label = "Start"
   if "Li" in settings['bat_type']:
     add_lines(p1, source, cells_num=int(settings['cells']))
 button_startstop.on_click(button_startstop_handler)
@@ -870,17 +870,17 @@ def read_imax():
   EndPt_in = device_dict['EndPt_in']
 
   #send the host->imax packet to trigger imax usb-uart to fill buffer
-  w_out = device.write(EndPt_out, settings['data_out_packet']) 
-  #Read the data out of the buffer ..imax->host  
+  w_out = device.write(EndPt_out, settings['data_out_packet'])
+  #Read the data out of the buffer ..imax->host
   try:
-    data = device.read(EndPt_in.bEndpointAddress,EndPt_in.wMaxPacketSize) #using more general form of Endpoint_IN attributes 
+    data = device.read(EndPt_in.bEndpointAddress,EndPt_in.wMaxPacketSize) #using more general form of Endpoint_IN attributes
   except Exception as e:
-    print('Something went wrong: no data incoming; error is: ', e) 
+    print('Something went wrong: no data incoming; error is: ', e)
   
   #Parse the current hex data read from imax for output to the plots
   out_data['mah'] = [int(str(data[5]*256 + data[6]))]  #capacity, mah
   # if cycling, we need to acount for the Imax tiime shifting back to 0.
-  if int(str(data[7]*256 + data[8])) < old_time: base_time = old_time 
+  if int(str(data[7]*256 + data[8])) < old_time: base_time = old_time
   out_data['timer'] = [int(str(data[7]*256 + data[8]))+ base_time]   #seconds
   old_time = int(str(data[7]*256 + data[8])) + base_time
   out_data['volts'] = [int(str(data[9]*256 + data[10]))]          #volts
@@ -934,7 +934,7 @@ def read_imax():
 # to expand the resolution on plots would need to first get current battery
 # voltage by sending an idle request at this stage, but we have not initialized
 # the imax yet. Could use source.patch?
-out_data = {'mah':[0], 'timer':[0], 'volts':[0], 'current':[0], 
+out_data = {'mah':[0], 'timer':[0], 'volts':[0], 'current':[0],
               'ext_T':[0], 'internal_T':[0], 'cell1':[0], 'cell2':[0],
               'cell3':[0],'cell4':[0], 'cell5':[0], 'cell6':[0]}
 #time_interval = 5 # seconds
@@ -975,7 +975,7 @@ def update():
     settings['run_status'], new_data = read_imax()
     # At least first 2 packets have run_status = 3, so bypass before checking
     #print('status: ', run_status, 'length of read_data: ',len(read_data['mah']))
-    if len(read_data['mah']) > 2: 
+    if len(read_data['mah']) > 2:
       if settings['run_status'] < 2 and button_startstop.label == "Stop":
         source.stream(new_data)
       else:
@@ -988,7 +988,7 @@ def update():
   else:
     msg = '; Device no longer connected.'
     text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
-    button_startstop_handler()    
+    button_startstop_handler()
 
 
 #w1 = row(select_battype, select_chrg_type) #, width = 300) #sizing_mode = 'fixed')
@@ -1003,11 +1003,11 @@ w8 = column(btn_savenew, btn_saveover, btn_delete)
 w9 = column(data_table)
 
 curdoc().add_root(notice1)
-Layit = gridplot([[column(w1.children+w2.children+w3.children+w4.children+w5.children+w6.children+w7.children+w8.children+w9.children), column([p, p1])]]) 
+Layit = gridplot([[column(w1.children+w2.children+w3.children+w4.children+w5.children+w6.children+w7.children+w8.children+w9.children), column([p, p1])]])
 
-curdoc().add_root(Layit) 
+curdoc().add_root(Layit)
 #curdoc().add_root(data_table)
 # lays out in one long row at top
-#Layit = gridplot([w1.children+w2.children+w3.children+w4.children+w5.children+w5.children], ncol = 1) 
-#Layit = gridplot([w1.children, w2.children, w3.children, w4.children, w5.children], ncol = 1) 
-#curdoc().add_root(Layit) 
+#Layit = gridplot([w1.children+w2.children+w3.children+w4.children+w5.children+w5.children], ncol = 1)
+#Layit = gridplot([w1.children, w2.children, w3.children, w4.children, w5.children], ncol = 1)
+#curdoc().add_root(Layit)
