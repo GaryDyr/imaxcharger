@@ -90,6 +90,7 @@ cycle_delay = 3
 run_status = 0
 settings_packet = []
 battery_use = 'Enter short battery use info.'
+data_update_interval = 10000  # milliseconds
 
 # used for cycling time fix
 base_time = 0
@@ -839,20 +840,20 @@ def button_startstop_handler():
       text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), 'Imax collecting data.') 
       #print('device found')      
       button_startstop.label = "Stop" 
-      settings['start_cycle'] = curdoc().add_periodic_callback(update, 10000)
-    else: #device was not started
+      settings['start_cycle'] = curdoc().add_periodic_callback(update, data_update_interval)
+    else:  # device was not started
       button_startstop.label = "Start" 
       msg = 'Imax start failed. See above messages for possible causes'     
       text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
       settings['run_status'] = 0      
-  else: #deal with stop conditions; user pressed app stop button, or run_status > 1 (imax buttons pressed.)
+  else:  # deal with stop conditions; user pressed app stop button, or run_status > 1 (imax buttons pressed.)
     if button_startstop.label == "Stop":
       text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), 'Run stopped because status is ' + str(settings['run_status']))
       curdoc().remove_periodic_callback(settings['start_cycle'])
       get_final_data()      
       button_startstop.label = "Start" 
   if "Li" in settings['bat_type']:
-    add_lines(p1, source, cells_num = int(settings['cells']))
+    add_lines(p1, source, cells_num=int(settings['cells']))
 button_startstop.on_click(button_startstop_handler)
 
 
