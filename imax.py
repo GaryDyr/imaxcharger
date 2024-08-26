@@ -1,3 +1,5 @@
+#! /usr/bin/python
+
 """
 Reads and outputs the information from the USB port of the FrSky IMAX B6 mini charger.
 Some notes are specific for Windows 10, 64 bit, running python 3.6.1, which was the development environment.
@@ -18,13 +20,11 @@ Requires:
       Next install pysub using: pip install pyusb
       The tutorial on pyusb https://github.com/pyusb/pyusb/blob/master/docs/tutorial.rst
 
-  openpyxl  adds support to output directly and Excel .xslx file of the data. 
-  
-  There are many comments   
+  openpyxl adds support to output directly and Excel .xslx file of the data.
+  to get all usb devices run following from an independent python module
+  There are many comments
 """
 
-#to get all usb devices run following from an independent python module
-#!/usr/bin/python
 import os
 import sys
 import usb.core
@@ -39,17 +39,18 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Fill
 
 
-#Some settings for future use
+# Some settings for future use
 battery_type = 'NIMH'
 DC_mode = 'CHARGE'
 cycle_num = 1
 notes = 'write someting' #notes
 settings_dict = {'max_chrg_time':"", 'max_input_V':"", 'cycle_delay':""}
 
-#--------------DEVICE SPECIFIC SEARCH INFO-------------------------
-#this substring is part of the USB/UART microcontroller product ID
+# --------------DEVICE SPECIFIC SEARCH INFO-------------------------
+# this substring is part of the USB/UART microcontroller product ID
 my_device_usb = 'C8051F3xx' 
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
+
 """
 #Generate the packets to output to the IMAX B6 Mini device. According to the Wireshack data,
 #the packet size for in and out is 64 bytes to set up and collect data.
@@ -146,16 +147,17 @@ def find_my_device():
  
 def connect_imax(): 
   print('in connect_max')
-  #This is over-engineered; to get here, we first check for device in find_my_device()
-  #This is specific vendor and product ids for the FrSky IMAX B6 mini with USB port
-  #Values from preceding methods or Wireshark usb output
+  # This is over-engineered; to get here, we first check for device in find_my_device()
+  # This is specific vendor and product ids for the FrSky IMAX B6 mini with USB port
+  # Values from preceding methods or Wireshark usb output
   dev = usb.core.find(idVendor=0x0000, idProduct=0x0001)
   if dev:
     #print('device connnected: ', dev)
     print('Hexadecimal VendorID=' + hex(dev.idVendor) + ' & ProductID=' + hex(dev.idProduct) + '\n\n') 
     try:
       manuf = usb.util.get_string(dev, dev.iManufacturer)
-      if manuf: print('manufacturer is: ', manuf)    
+      if manuf:
+        print('manufacturer is: ', manuf)
     except:
       pass
     msg = manuf + ' Device connected: Hexadecimal VendorID=' + hex(dev.idVendor) + ' & ProductID=' + hex(dev.idProduct)
@@ -174,39 +176,63 @@ def connect_imax():
     print(f"Not implemented: '{e}', proceeding")
 
   return dev
-  
-def start_imax(settings_packet):
+
+
+def start_imax(device_dict, settings_packet, always_reconnect):
   global settings_dict
   print('in start_max ')
-  dev = connect_imax()
-  if not dev: #send back dummy tuple
-    device_dict = {'device':None, 'EndPt_out':None, 'EndPt_in':None}
+
+  if not always_reconnect:
+    dev = device_dict['device']
+    initialized = False
+    if dev is not None:
+      try:
+        dev.get_active_configuration()
+        initialized = True
+      except usb.USBError:
+        print('Failed to communicate, probably disconnected')
+        dev = None
+  else:
+    initialized = False
+    dev = None
+
+  if dev is None:
+    dev = connect_imax()
+    initialized = False
+  if not dev:  # send back dummy tuple
+    device_dict = {'device': None, 'EndPt_out': None, 'EndPt_in': None}
     read_data = {}
     settings_dict = {}
     data_out_packet = []
     return device_dict, read_data, settings_dict, data_out_packet
-  # set the active configuration. With no arguments, the first configuration will be the active one
-  print('Getting config')  
-  dev.set_configuration()
-  print('Getting active configuration.')
-  cfg = dev.get_active_configuration()
-  print('Got active Cfg')
-  print('Attempting to get default interface')
-  intf = cfg[(0,0)]
-  print('Got interface')
-  #AN ENDPOINT IS A BYTE BUCKET TO SEND OR RECEIVE DATA
-  #match the first OUT endpoint
-  #from the pyusb example
-  #find the two endpoints; actually find endpoint attributes group; read and write take all the info under the ENDPOINT attributes group
-  ep_out = usb.util.find_descriptor(intf, custom_match = lambda e: usb.util.endpoint_direction(e.bEndpointAddress) == usb.util.ENDPOINT_OUT)
-  ep_in = usb.util.find_descriptor(intf, custom_match = lambda e: usb.util.endpoint_direction(e.bEndpointAddress) == usb.util.ENDPOINT_IN)    
+  if not initialized:
+    # set the active configuration. With no arguments, the first configuration will be the active one
+    print('Getting config')
+    dev.set_configuration()
+    print('Getting active configuration.')
+    cfg = dev.get_active_configuration()
+    print('Got active Cfg')
+    print('Attempting to get default interface')
+    intf = cfg[(0, 0)]
+    print('Got interface')
+    # AN ENDPOINT IS A BYTE BUCKET TO SEND OR RECEIVE DATA
+    # match the first OUT endpoint
+    # from the pyusb example
+    # find the two endpoints; actually find endpoint attributes group; read and write take all the info under the ENDPOINT attributes group
+    ep_out = usb.util.find_descriptor(intf, custom_match=lambda e: usb.util.endpoint_direction(
+      e.bEndpointAddress) == usb.util.ENDPOINT_OUT)
+    ep_in = usb.util.find_descriptor(intf, custom_match=lambda e: usb.util.endpoint_direction(
+      e.bEndpointAddress) == usb.util.ENDPOINT_IN)
+  else:
+    ep_out = device_dict['EndPt_out']
+    ep_in = device_dict['EndPt_in']
 
   assert ep_out is not None
   assert ep_in is not None
   #print('ep out is:', ep_out) #should be 0x1 + all Endpoint_out attributes
   #print('ep in is:', ep_in) #should be 0x81 + all other Endpoint_in attributes
   
-  device_dict = {'device':dev, 'EndPt_out':ep_out, 'EndPt_in':ep_in} 
+  device_dict = {'device': dev, 'EndPt_out': ep_out, 'EndPt_in': ep_in}
   #print('start_imax:device_dict is: ', device_dict)
   imax_settings_out =[0x0f, 0x03, 0x5a, 0x00, 0x5a, 0xff, 0xff] + [0]*57 
   start_packet = [0x0f, 0x03, 0x5f, 0x00, 0x5f, 0xff, 0xff] + [0]*57  
@@ -227,16 +253,16 @@ def start_imax(settings_packet):
     print('Settings: Max Charge(mah): ' + max_chrg_time + ' min; mV(max): ' + max_input_V +' V; ' + 'Cycle delay: ' + cycle_delay + ' min.')
     print('Current battery voltage: ', bat_V)
   settings_dict = {'max_chrg_time':max_chrg_time, 'max_input_V':max_input_V, 'cycle_delay':cycle_delay, 'bat_V':bat_V}
-  #Send what is some sort of start packet
+  # Send what is some sort of start packet
   w_out = dev.write(ep_out, start_packet)
-  #write the run settings to the Imax  
+  # Write the run settings to the Imax
   if len(settings_packet) > 30:
     w_set = dev.write(ep_out,settings_packet)
     print('settings sent')
   else:
     print('no settings_packet transferred.')
     sys.exit()
-  #for some reason Chargemaster sends 3 packets in quick succession; so us too....
+  # for some reason Chargemaster sends 3 packets in quick succession; so us too....
   for i in range(3):
     w_out = dev.write(ep_out, data_out_packet)
   t = time.perf_counter()
@@ -248,7 +274,7 @@ def start_imax(settings_packet):
   print('sending first data packet')  
   w_out = dev.write(ep_out, data_out_packet) 
   try:
-    data = dev.read(ep_in.bEndpointAddress,ep_in.wMaxPacketSize) #using more general form of Endpoint_IN attributes 
+    data = dev.read(ep_in.bEndpointAddress,ep_in.wMaxPacketSize)  # using more general form of Endpoint_IN attributes
   except Exception as e: 
     print('Something went wrong: error is: ', e)
   else:
@@ -283,7 +309,7 @@ def start_imax(settings_packet):
     read_data['cell5'].append(int(str(data[25]*256 + data[26])))
     read_data['cell6'].append(int(str(data[27]*256 + data[28])))
  
-    #print the data; this is same sequence that Milek7 used with hidapi; much appreciated effort.
+    # print the data; this is same sequence that Milek7 used with hidapi; much appreciated effort.
     print ("state, energy, timer, voltage, current, ext temp, int temp, cell 1, cell 2, cell 3, cell 4, cell 5, cell 6")    
     print(
       str(data[4]) + ", " +                                 #state

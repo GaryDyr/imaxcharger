@@ -91,6 +91,7 @@ run_status = 0
 settings_packet = []
 battery_use = 'Enter short battery use info.'
 data_update_interval = 10000  # milliseconds
+always_reconnect = False  # Initialize new connection on every start command
 
 # used for cycling time fix
 base_time = 0
@@ -774,24 +775,25 @@ def start_device():
     text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), device_str)
     print(device_str)
     text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), 'Imax offline. Cycling for one minute.')
-    nowtime = datetime.datetime.now()
-    futuretime = datetime.datetime.now() + datetime.timedelta(minutes = 1)
+    futuretime = datetime.datetime.now() + datetime.timedelta(minutes=1)
     while "No" in device_str:
-      device_str = imax.find_my_device() #returns msg which has "No" in it ,if device not found
+      device_str = imax.find_my_device()  # returns msg which has "No" in it ,if device not found
       if "No" in device_str:
-        if datetime.datetime.now()> futuretime:
-          text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), 'Could not find device; check device and connection.')
+        if datetime.datetime.now() > futuretime:
+          text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                      'Could not find device; check device and connection.')
           return False
       time.sleep(1)
   print('device found')
   text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), device_str)
-  #device found, engage device, get parameters and dictionaries
+  # device found, engage device, get parameters and dictionaries
   get_settings_packet()
   if settings_packet:
-    device_dict, read_data, settings_dict, data_out_packet = imax.start_imax(settings_packet)
+    device_dict, read_data, settings_dict, data_out_packet = imax.start_imax(
+      device_dict, settings_packet, always_reconnect)
   #check cells and battery voltage max limits
   settings['settings_dict'] = settings_dict
-  battery_V = settings_dict['bat_V'] #obtained from idling packet, but transferred as V not mV
+  battery_V = settings_dict['bat_V'] # obtained from idling packet, but transferred as V not mV
   #print('limit test: ', limits[settings['bat_type']][1]*int(settings['cells']), battery_V*1000)
   if limits[settings['bat_type']][1]*int(settings['cells']) < battery_V:
     print('Battery voltage is too high for number of cells specified.')
@@ -799,12 +801,12 @@ def start_device():
     text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
     return False
   #print('read_data is: ', read_data)
-  #Is imax running?
+  # Is imax running?
   #translation of next line: from read_data dict, get last element (as a list) and extract the value
   print('run_status is ', read_data['run_status'][-1:][0])
-  #check if at least got some kind or read back from Imax. Is status > default (0)
+  # check if at least got some kind or read back from Imax. Is status > default (0)
   if len(read_data['run_status'][-1:]) > 0:
-    settings['run_status'] = read_data['run_status'][-1:][0]  #stored as integer
+    settings['run_status'] = read_data['run_status'][-1:][0]  # stored as integer
     settings['data_out_packet'] = data_out_packet
     msg = 'Imax device found; settings transferred.'
     text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), msg)
