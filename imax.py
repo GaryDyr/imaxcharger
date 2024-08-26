@@ -25,19 +25,16 @@ Requires:
   There are many comments
 """
 
+import csv
+import datetime
 import os
 import sys
+import time
+
+import usb
 import usb.core
 import usb.util
-import usb
-import time
-import datetime
-import csv
-import json
-#from bok import text_update
 from openpyxl import Workbook
-from openpyxl.styles import Font, Fill
-
 
 # Some settings for future use
 battery_type = 'NIMH'
