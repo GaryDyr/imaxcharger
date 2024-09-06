@@ -32,6 +32,13 @@ with other Imax knock-offs or under other operating systems is unknown.
 The application should work with any python \> 3.x.x versions, provided
 the appropriate libraries and packages have been installed.
 
+**Note!** For Linux users, to run this script under non-root user install udev rules:
+
+```shell
+$ sudo install --mode=0644 --target-directory=/etc/udev/rules.d/ udev/90-smart-charger.rules
+$ sudo udevadm trigger
+```
+
 See the imax\_B6\_mini\_log\_and\_control.docx MS Word file for details
 on operation of the applications. The last section of the Word file also
 contains all the relevant host to Imax and Imax to host relevant packet

@@ -80,7 +80,7 @@ maxmah_slider.on_change('value', maxmah_handler)
 DC_radio_group = RadioGroup(labels=["Discharge/Charge", "Charge/Discharge"], active=0)
 def DC_radio_handler(new):
   settings['DC'] = new  
-DC_radio_group.on_click(DC_radio_handler)
+DC_radio_group.on_change('active', lambda attr, old, new:DC_radio_handler())
 
 select_cells = Select(title = "No. of Cells", value ="4", options = [str(i) for i in range(1,13)])
 def select_cells_handler(attr, old, new):
@@ -187,7 +187,7 @@ def start_device():
   text_update(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), device_str)      
   #device was found, engage device, get parameters and dictionaries
   device_dict, read_data, settings_dict, data_out_packet = imax_0.start_imax()
-  print('Loading settings)  
+  print('Loading settings')
   settings['settings_dict'] = settings_dict
   settings['data_out_packet'] = data_out_packet
   
@@ -318,7 +318,7 @@ out_data = {'mah':[0], 'timer':[0], 'volts':[0], 'current':[0],
 source = ColumnDataSource(data = out_data)
 
 #Generate two plots, for capacity and voltage
-p = column(width=400, height=400)
+p = figure(width=400, height=400)
 p.title.text = "Capactiy Input vs. Charge Time"
 p.title.text_color = "black"
 p.title.text_font = "arial"
@@ -329,7 +329,7 @@ p.yaxis.axis_label = "Capacity Added(mah)"
 r_cap = p.line(x = 'timer', y = 'mah', source = source, color="red", line_width=2)
 
 #Set the voltabe plot; complicated a  bit by battery type
-p1 = column(width=400, height=400)
+p1 = figure(width=400, height=400)
 p1.title.text = "Voltage vs. Charge Time"
 p1.title.text_color = "black"
 p1.title.text_font = "arial"

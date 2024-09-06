@@ -1,5 +1,5 @@
-#Database utility module used by run_imax.py to handle database 
-#functions for storing,updating, and removing settings program entries.
+# Database utility module used by run_imax.py to handle database
+# functions for storing,updating, and removing settings program entries.
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -7,7 +7,7 @@ from sqlalchemy import MetaData
 from sqlalchemy import inspect
 from sqlalchemy import Table
 from sqlalchemy.sql import text
-#from sqlalchemy.ext.automap import automap_base
+
 from tabledef import *
 
 engine = create_engine('sqlite:///imax_programs.db', echo = True)

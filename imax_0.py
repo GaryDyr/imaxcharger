@@ -25,12 +25,14 @@ Requires:
 
 #to get all usb devices run following from an independent python module
 #!/usr/bin/python
+import os
 import sys
 import usb.core
 import usb.util
 import usb
 import time
 import datetime
+import csv
 import json
 #from bok import text_update
 from openpyxl import Workbook

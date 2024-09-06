@@ -35,5 +35,7 @@ def get_device_configuration():
       print('device found: ', dev)
   except:
     print('No device with Vendor id: 0x000; Product id: 0x0001 found')
-   print('Is device connected? Is device on?
+    print('Is device connected? Is device on?')
+
+
 get_device_configuration()
